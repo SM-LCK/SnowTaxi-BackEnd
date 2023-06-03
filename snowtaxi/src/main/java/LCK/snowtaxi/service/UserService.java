@@ -17,7 +17,7 @@ public class UserService {
 
     public void createUser(String userId, String phone) {
         User user = User.builder()
-                .userId(userId)
+                .kakaoId(userId)
                 .phone(phone)
                 .build();
 

@@ -11,9 +11,11 @@ import lombok.*;
 @Entity(name="user")
 public class User {
     @Id
-    private String userId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long userId;
 
     //private String name;
+    private String kakaoId;
     private String phone;
 
 }
