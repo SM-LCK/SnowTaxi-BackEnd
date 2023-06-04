@@ -29,7 +29,7 @@ public class UserService {
     }
 
     public long getUserId(String kakaoId) {
-        User user = userRepository.findBKakaoId(kakaoId).orElseThrow(IllegalArgumentException::new);
+        User user = userRepository.findByKakaoId(kakaoId).orElseThrow(IllegalArgumentException::new);
         long userId = user.getUserId();
 
         return userId;
