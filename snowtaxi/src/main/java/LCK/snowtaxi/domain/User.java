@@ -15,6 +15,7 @@ public class User {
     private long userId;
 
     //private String name;
+    @Column(unique=true)
     private String kakaoId;
     private String phone;
 

@@ -35,13 +35,18 @@ public class UserController {
 
         if (userInfo.get("id") != null) {
             session.setAttribute("access_token", access_token);
-            session.setAttribute("userId", userInfo.get("id"));
+            session.setAttribute("kakaoId", userInfo.get("id"));
             session.setAttribute("nickname", userInfo.get("nickname"));
 
-           String userId = (String)session.getAttribute("userId");
-            if (!userService.isUser(userId)){
+           String kakaoId = (String)session.getAttribute("kakaoId");
+            if (!userService.isUser(kakaoId)){
                 return "/signUp";
             }
+            else {
+                long userId = userService.getUserId(kakaoId);
+                session.setAttribute("userId", userId);
+            }
+            // signup 안하고 나가면 unlink 추가하세요
         }
 
         return "home";
@@ -49,8 +54,10 @@ public class UserController {
 
     @PostMapping("/signUp")
     public String signUp(@RequestParam String phone,@NotNull HttpSession session) {
-        String userId = (String)session.getAttribute("userId");
-        userService.createUser(userId, phone);
+        String kakaoId = (String)session.getAttribute("kakaoId");
+        userService.createUser(kakaoId, phone);
+        long userId = userService.getUserId(kakaoId);
+        session.setAttribute("userId", userId);
 
         return "home";
     }
@@ -62,8 +69,9 @@ public class UserController {
         if(access_Token != null && !"".equals(access_Token)){
             ks.kakaoLogout(access_Token);
             session.removeAttribute("access_Token");
-            session.removeAttribute("userId");
+            session.removeAttribute("kakaoId");
             session.removeAttribute("nickname");
+            session.removeAttribute("userId");
             System.out.println("bye");
         }else{
             System.out.println("access_Token is null");
@@ -75,7 +83,7 @@ public class UserController {
     @DeleteMapping("/unlink")
     public String unlink(@NotNull HttpSession session) {
         String access_Token = (String)session.getAttribute("access_token");
-        String userId = (String)session.getAttribute("userId");
+        long userId = (long)session.getAttribute("userId");
 
         ks.unlink(access_Token);
         userService.deleteUser(userId);
