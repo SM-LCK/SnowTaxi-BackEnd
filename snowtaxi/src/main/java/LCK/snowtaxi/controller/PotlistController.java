@@ -32,7 +32,7 @@ public class PotlistController {
         return "makePot";
     }
 
-    @PostMapping("/{departure}/")
+    @PostMapping("/{departure}/2")
     public void joinPot(@PathVariable String departure, @RequestParam long potlistId, @NotNull HttpSession session){
         long userId = (long)session.getAttribute("userId");
 

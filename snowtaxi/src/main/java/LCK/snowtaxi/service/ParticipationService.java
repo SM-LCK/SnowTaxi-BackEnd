@@ -2,7 +2,9 @@ package LCK.snowtaxi.service;
 
 import LCK.snowtaxi.domain.Participation;
 import LCK.snowtaxi.repository.ParticipationRepository;
+import org.springframework.stereotype.Service;
 
+@Service
 public class ParticipationService {
     private ParticipationRepository participationRepository;
 

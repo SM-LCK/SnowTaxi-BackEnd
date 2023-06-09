@@ -34,8 +34,8 @@ public class UserController {
 
 
         if (userInfo.get("id") != null) {
+            session.setAttribute("userId", userInfo.get("id"));
             session.setAttribute("access_token", access_token);
-            session.setAttribute("kakaoId", userInfo.get("id"));
             session.setAttribute("nickname", userInfo.get("nickname"));
         }
 
@@ -44,26 +44,26 @@ public class UserController {
 
     @GetMapping("/validation")
     public String a (HttpSession session) {
-        String kakaoId = (String)session.getAttribute("kakaoId");
+        String kakaoId = (String)session.getAttribute("userId");
         if (!userService.isUser(kakaoId)){
-            return "/signUp";
+            return "SignUp";
         }
         else {
             long userId = userService.getUserId(kakaoId);
-            session.setAttribute("userId", userId);
+            session.setAttribute("userNo", userId);
         }
         // signup 안하고 나가면 unlink 추가하세요
-        return "home";
+        return "Main";
     }
 
 
     @ResponseBody
     @PostMapping("/signUp")
     public String signUp(@RequestParam String phone,@NotNull HttpSession session) {
-        String kakaoId = (String)session.getAttribute("kakaoId");
+        String kakaoId = (String)session.getAttribute("userId");
         userService.createUser(kakaoId, phone);
         long userId = userService.getUserId(kakaoId);
-        session.setAttribute("userId", userId);
+        session.setAttribute("userNo", userId);
 
         return "home";
     }
@@ -75,9 +75,9 @@ public class UserController {
         if(access_Token != null && !"".equals(access_Token)){
             ks.kakaoLogout(access_Token);
             session.removeAttribute("access_Token");
-            session.removeAttribute("kakaoId");
-            session.removeAttribute("nickname");
             session.removeAttribute("userId");
+            session.removeAttribute("nickname");
+            session.removeAttribute("userNo");
             System.out.println("bye");
         }else{
             System.out.println("access_Token is null");

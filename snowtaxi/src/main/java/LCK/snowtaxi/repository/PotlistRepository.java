@@ -13,6 +13,6 @@ public interface PotlistRepository extends JpaRepository<Potlist, Long> {
 
     List<Potlist> findByDepartureAndCreatedAt(String departure, LocalDate createdAt);
     @Modifying
-    @Query("update Potlist p set p.headCount += 1 where p.potlistId = potlistId")
+    @Query(value = "update Potlist p set p.headCount += 1 where p.potlistId = :potlistId", nativeQuery = true)
     void increaseHeadCount(@Param("potlistId") long potlistId);
 }
