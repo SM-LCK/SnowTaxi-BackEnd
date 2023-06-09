@@ -50,6 +50,7 @@ public class UserController {
     @PostMapping("/signUp")
     public String signUp(@RequestParam String phone,@NotNull HttpSession session) {
         String userId = (String)session.getAttribute("userId");
+        System.out.println("userId = " + userId);
         userService.createUser(userId, phone);
 
         return "home";
@@ -58,6 +59,9 @@ public class UserController {
     @GetMapping("/logout")
     public String logout(@NotNull HttpSession session) {
         String access_Token = (String)session.getAttribute("access_token");
+        String id = (String)session.getAttribute("userId");
+        System.out.println("access_Token = " + access_Token);
+        System.out.println("id = " + id);
 
         if(access_Token != null && !"".equals(access_Token)){
             ks.kakaoLogout(access_Token);
@@ -76,6 +80,7 @@ public class UserController {
     public String unlink(@NotNull HttpSession session) {
         String access_Token = (String)session.getAttribute("access_token");
         String userId = (String)session.getAttribute("userId");
+        System.out.println("userId = " + userId);
 
         ks.unlink(access_Token);
         userService.deleteUser(userId);
