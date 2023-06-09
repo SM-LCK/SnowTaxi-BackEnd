@@ -37,21 +37,27 @@ public class UserController {
             session.setAttribute("access_token", access_token);
             session.setAttribute("kakaoId", userInfo.get("id"));
             session.setAttribute("nickname", userInfo.get("nickname"));
-
-           String kakaoId = (String)session.getAttribute("kakaoId");
-            if (!userService.isUser(kakaoId)){
-                return "/signUp";
-            }
-            else {
-                long userId = userService.getUserId(kakaoId);
-                session.setAttribute("userId", userId);
-            }
-            // signup 안하고 나가면 unlink 추가하세요
         }
 
         return "home";
     }
 
+    @GetMapping("/validation")
+    public String a (HttpSession session) {
+        String kakaoId = (String)session.getAttribute("kakaoId");
+        if (!userService.isUser(kakaoId)){
+            return "/signUp";
+        }
+        else {
+            long userId = userService.getUserId(kakaoId);
+            session.setAttribute("userId", userId);
+        }
+        // signup 안하고 나가면 unlink 추가하세요
+        return "home";
+    }
+
+
+    @ResponseBody
     @PostMapping("/signUp")
     public String signUp(@RequestParam String phone,@NotNull HttpSession session) {
         String kakaoId = (String)session.getAttribute("kakaoId");
@@ -61,7 +67,7 @@ public class UserController {
 
         return "home";
     }
-
+    
     @GetMapping("/logout")
     public String logout(@NotNull HttpSession session) {
         String access_Token = (String)session.getAttribute("access_token");
