@@ -15,9 +15,10 @@ public class UserService {
         return userRepository.existsByKakaoId(kakaoId);
     }
 
-    public void createUser(String kakaoId, String phone) {
+    public void createUser(String kakaoId, String nickname, String phone) {
         User user = User.builder()
                 .kakaoId(kakaoId)
+                .nickname(nickname)
                 .phone(phone)
                 .build();
 

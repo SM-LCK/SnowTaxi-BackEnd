@@ -2,12 +2,19 @@ package LCK.snowtaxi.controller;
 
 import LCK.snowtaxi.service.KakaoService;
 import LCK.snowtaxi.service.UserService;
-import jakarta.servlet.http.HttpSession;
-import org.jetbrains.annotations.NotNull;
+import LCK.snowtaxi.token.JwtService;
+import LCK.snowtaxi.token.TokenInfoVo;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.security.Principal;
 import java.util.HashMap;
 
 @RequestMapping(path = "/user")
@@ -17,6 +24,8 @@ public class UserController {
     KakaoService ks;
     @Autowired
     UserService userService;
+    @Autowired
+    JwtService jwtService;
 
     @GetMapping("/login")
     public String login()
@@ -26,76 +35,82 @@ public class UserController {
     }
 
     @GetMapping("/kakao")
-    public String getCI(@RequestParam String code, HttpSession session) throws IOException {
+    public String getCI(@RequestParam String code) throws IOException {
         System.out.println("code = " + code);
-
         String access_token = ks.getAccessToken(code);
-        HashMap<String, Object> userInfo = ks.getUserInfo(access_token);
 
-
-        if (userInfo.get("id") != null) {
-            session.setAttribute("userId", userInfo.get("id"));
-            session.setAttribute("access_token", access_token);
-            session.setAttribute("nickname", userInfo.get("nickname"));
-        }
-
-        return "home";
+        return access_token;
     }
 
-    @GetMapping("/validation")
-    public String a (HttpSession session) {
-        String kakaoId = (String)session.getAttribute("userId");
-        if (!userService.isUser(kakaoId)){
-            return "SignUp";
-        }
-        else {
-            long userId = userService.getUserId(kakaoId);
-            session.setAttribute("userNo", userId);
-        }
-        // signup 안하고 나가면 unlink 추가하세요
-        return "Main";
-    }
+    @PostMapping("/auth")
+    public void validation (@RequestBody AuthRequest authRequest, HttpServletResponse response) throws IOException {
+        String kakao_token = authRequest.getKakao_token();
+        HashMap<String, Object> userInfo = ks.getUserInfo(kakao_token);
 
+        String kakaoId = (String) userInfo.get("id");
+        String nickname = (String) userInfo.get("nickname");
 
-    @ResponseBody
-    @PostMapping("/signUp")
-    public String signUp(@RequestParam String phone,@NotNull HttpSession session) {
-        String kakaoId = (String)session.getAttribute("userId");
-        userService.createUser(kakaoId, phone);
+        if (!userService.isUser(kakaoId)) {
+            userService.createUser(kakaoId, nickname, null);
+            System.out.println("전화번호를 받으세요");
+        }
+
         long userId = userService.getUserId(kakaoId);
-        session.setAttribute("userNo", userId);
+        String access_token = jwtService.createAccessToken(kakaoId,userId,nickname,kakao_token);
+        String refresh_token = jwtService.createRefreshToken();
 
-        return "home";
+        jwtService.updateRefreshToken(userId, refresh_token);
+
+        jwtService.sendAccessAndRefreshToken(response, access_token, refresh_token);
+        System.out.println("토큰을 헤더로 전송");
+        return;
     }
-    
+
+
+//    @ResponseBody
+//    @PostMapping("/signUp")
+//    public String signUp(@RequestParam String phone) {
+//
+//        return "home";
+//    }
+
     @GetMapping("/logout")
-    public String logout(@NotNull HttpSession session) {
-        String access_Token = (String)session.getAttribute("access_token");
+    public String logout(HttpServletRequest request) {
+        String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
+        TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
 
-        if(access_Token != null && !"".equals(access_Token)){
-            ks.kakaoLogout(access_Token);
-            session.removeAttribute("access_Token");
-            session.removeAttribute("userId");
-            session.removeAttribute("nickname");
-            session.removeAttribute("userNo");
-            System.out.println("bye");
-        }else{
-            System.out.println("access_Token is null");
-        }
+        String kakao_token = tokenInfoVo.getKakao_token();
+        ks.kakaoLogout(kakao_token);
+        System.out.println("bye");
+
+        SecurityContextHolder.getContext().setAuthentication(null);
         return "/login";
-
     }
 
-    @DeleteMapping("/unlink")
-    public String unlink(@NotNull HttpSession session) {
-        String access_Token = (String)session.getAttribute("access_token");
-        long userId = (long)session.getAttribute("userId");
+    @GetMapping("/unlink")
+    public String unlink(HttpServletRequest request) {
+        String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
+        TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
 
-        ks.unlink(access_Token);
+        String kakao_token = tokenInfoVo.getKakao_token();
+        long userId = tokenInfoVo.getUserId();
+
+        ks.unlink(kakao_token);
         userService.deleteUser(userId);
-        session.invalidate();
+
+        SecurityContextHolder.getContext().setAuthentication(null);
 
         return "/login";
     }
 
+
+    // 인증요청 객체
+    @AllArgsConstructor
+    @Data
+    static class AuthRequest{
+        private String kakao_token;
+        public AuthRequest(){
+
+        }
+    }
 }
