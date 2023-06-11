@@ -1,45 +1,87 @@
 package LCK.snowtaxi.service;
 
 import LCK.snowtaxi.domain.User;
-import org.springframework.context.annotation.Bean;
+import LCK.snowtaxi.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.web3j.abi.TypeReference;
+import org.web3j.abi.datatypes.Address;
+import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.EthAccounts;
 import org.web3j.protocol.http.HttpService;
 
+import javax.imageio.IIOException;
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 
 @Service
-public class BlockChainService {
-    // Ethereum 네트워크에 연결
-    static Web3j web3j = Web3j.build(new HttpService("http://127.0.0.1:8545"));
+public class SnowCashService {
 
-    public void createAccount(User user) throws Exception {
+    @Value("${ethereum.admin}")
+    private String admin;
+    @Value("${ethereum.coin.contract}")
+    private String contract;
+    @Value("${ethereum.walletPath}")
+    private String walletPath;
+    static Web3j web3j = Web3j.build(new HttpService());
+
+    @Autowired
+    final EthereumService ethereumService;
+
+    @Autowired
+    UserRepository userRepository;
+    public SnowCashService(EthereumService ethereumService) {
+        this.ethereumService = ethereumService;
+    }
+
+    public Long getBalance(User user) {
+        Long balance = null;
+        Function getBalances = new Function(
+                "balances",
+                Arrays.asList(new Address(user.getWalletAddress())),
+                Arrays.asList(new TypeReference<Uint256>() {})
+        );
+
         try {
-            // 새 계정 생성
-            String password = "snowtaxi";
-            String walletFileName = WalletUtils.generateNewWalletFile(password, new File("/Users/kelly/Blockchain/data/keystore"));
+            balance = Long.valueOf(String.valueOf(ethereumService.ethCall(getBalances)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-            // 생성된 계정 정보 출력
-            String walletFilePath = "/Users/kelly/Blockchain/data/keystore" + File.separator + walletFileName;
-            Credentials credentials = WalletUtils.loadCredentials(password, walletFilePath);
-            String address = credentials.getAddress();
-            System.out.println("New account address: " + address);
-            System.out.println("Wallet file path: " + walletFilePath);
+        return balance;
+    }
+
+    public void chargeCash(User user, int amount) {
+        Function charge = new Function("charge",
+                Arrays.asList(new Address(user.getWalletAddress()), new Uint256(amount)),
+                Collections.emptyList()
+        );
+
+        try {
+            String transactionHash = ethereumService.ethSendTransaction(charge);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public String getAccount(int idx) throws Exception {
+    public void sendCash(User sender, User receiver, int amount) {
+        Function send = new Function("send",
+                Arrays.asList(new Address(sender.getWalletAddress()), new Address(receiver.getWalletAddress()), new Uint256(amount)),
+                Collections.emptyList()
+        );
+
         try {
-            EthAccounts accounts = web3j.ethAccounts().send();
-            return accounts.getAccounts().get(idx);
+            String transactionHash = ethereumService.ethSendTransaction(send);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+
     }
 }
