@@ -41,6 +41,7 @@ public class JwtFilter  extends OncePerRequestFilter {
         // access-token 인증하고 처리
         if (refreshToken == null) {
             checkAccessTokenAndAuthentication(request, response, filterChain);
+            return;
         }
     }
 
@@ -81,7 +82,8 @@ public class JwtFilter  extends OncePerRequestFilter {
     }
 
     public void saveAuthentication(User user) {
-        String password = user.getPassword();
+        log.info("saveAuthentication() 호출");
+            String password = user.getPassword();
         if (password == null) { // 소셜 로그인 유저의 비밀번호 임의로 설정 하여 소셜 로그인 유저도 인증 되도록 설정
             password = user.getKakaoId();
             user.setPassword(password);
@@ -91,12 +93,15 @@ public class JwtFilter  extends OncePerRequestFilter {
         UserDetails userDetailsUser = org.springframework.security.core.userdetails.User.builder()
                 .username(user.getKakaoId())
                 .password(password)
+                .authorities("USER")
                 .build();
 
         Authentication authentication =
-                new UsernamePasswordAuthenticationToken(userDetailsUser, null);
+                new UsernamePasswordAuthenticationToken(userDetailsUser, password,
+                        userDetailsUser.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        log.info("SecurityContextHolder에 저장합니다");
     }
 
 }
