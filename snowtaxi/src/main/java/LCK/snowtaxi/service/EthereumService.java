@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutionException;
 import LCK.snowtaxi.domain.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.FunctionReturnDecoder;
 import org.web3j.abi.datatypes.Function;
@@ -21,12 +22,12 @@ import org.web3j.protocol.core.methods.request.Transaction;
 import org.web3j.protocol.core.methods.response.*;
 import org.web3j.protocol.http.HttpService;
 
-@Component
+@Service
 public class EthereumService {
 
     @Value("${ethereum.admin}")
     private String admin;
-    @Value("${ethereum.coin.contract}")
+    @Value("${ethereum.contract}")
     private String contract;
     @Value("${ethereum.walletPath}")
     private String walletPath;
