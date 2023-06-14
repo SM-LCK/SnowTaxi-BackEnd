@@ -26,7 +26,7 @@ public class SnowCashService {
 
     @Value("${ethereum.admin}")
     private String admin;
-    @Value("${ethereum.coin.contract}")
+    @Value("${ethereum.contract}")
     private String contract;
     @Value("${ethereum.walletPath}")
     private String walletPath;
