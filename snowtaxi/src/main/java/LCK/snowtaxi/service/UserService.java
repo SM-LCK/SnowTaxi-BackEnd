@@ -6,6 +6,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
     @Autowired
@@ -34,6 +36,10 @@ public class UserService {
         long userId = user.getUserId();
 
         return userId;
+    }
+
+    public Optional<User> viewUser(long userId) {
+        return userRepository.findById(userId);
     }
 
 }

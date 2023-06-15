@@ -41,7 +41,7 @@ public class UserController {
         return access_token;
     }
 
-    @GetMapping("/isUser")
+    @PostMapping("/isUser")
     public String isUser(@RequestBody AuthRequest authRequest) throws IOException {
         String kakao_token = authRequest.getKakao_token();
         HashMap<String, Object> userInfo = ks.getUserInfo(kakao_token);

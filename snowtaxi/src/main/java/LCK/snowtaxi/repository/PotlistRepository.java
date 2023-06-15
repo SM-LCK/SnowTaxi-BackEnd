@@ -8,11 +8,10 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface PotlistRepository extends JpaRepository<Potlist, Long> {
 
+    Optional<Potlist> findByPotlistId(long potlistId);
     List<Potlist> findByDepartureAndCreatedAt(String departure, LocalDate createdAt);
-    @Modifying
-    @Query(value = "update Potlist p set p.headCount += 1 where p.potlistId = :potlistId", nativeQuery = true)
-    void increaseHeadCount(@Param("potlistId") long potlistId);
 }
