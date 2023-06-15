@@ -1,5 +1,6 @@
 package LCK.snowtaxi.controller;
 
+import LCK.snowtaxi.domain.User;
 import LCK.snowtaxi.service.KakaoService;
 import LCK.snowtaxi.service.UserService;
 import LCK.snowtaxi.token.JwtService;
@@ -10,11 +11,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
 
 @RequestMapping(path = "/user")
@@ -42,6 +41,17 @@ public class UserController {
         return access_token;
     }
 
+    @GetMapping("/isUser")
+    public String isUser(@RequestBody AuthRequest authRequest) throws IOException {
+        String kakao_token = authRequest.getKakao_token();
+        HashMap<String, Object> userInfo = ks.getUserInfo(kakao_token);
+
+        String kakaoId = (String) userInfo.get("id");
+        System.out.println("kakaoId = " + kakaoId);
+        if (!userService.isUser(kakaoId)) return "SignUp";
+        else return "Main";
+    }
+
     @PostMapping("/auth")
     public void validation (@RequestBody AuthRequest authRequest, HttpServletResponse response) throws IOException {
         String kakao_token = authRequest.getKakao_token();
@@ -51,8 +61,7 @@ public class UserController {
         String nickname = (String) userInfo.get("nickname");
 
         if (!userService.isUser(kakaoId)) {
-            userService.createUser(kakaoId, nickname, null);
-            System.out.println("전화번호를 받으세요");
+            userService.createUser(kakaoId, nickname, "error");
         }
 
         long userId = userService.getUserId(kakaoId);
@@ -66,13 +75,18 @@ public class UserController {
         return;
     }
 
+    @PostMapping("/signUp")
+    public void signUp(@RequestBody SignUpRequest signUpRequest, HttpServletResponse response) throws IOException {
+        String kakao_token = signUpRequest.getKakao_token();
+        String phone = signUpRequest.getPhone();
 
-//    @ResponseBody
-//    @PostMapping("/signUp")
-//    public String signUp(@RequestParam String phone) {
-//
-//        return "home";
-//    }
+        HashMap<String, Object> userInfo = ks.getUserInfo(kakao_token);
+        String kakaoId = (String) userInfo.get("id");
+        String nickname = (String) userInfo.get("nickname");
+
+        userService.createUser(kakaoId,nickname,phone);
+    }
+
 
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
@@ -109,8 +123,14 @@ public class UserController {
     @Data
     static class AuthRequest{
         private String kakao_token;
-        public AuthRequest(){
+        public AuthRequest(){}
+    }
 
-        }
+    @AllArgsConstructor
+    @Data
+    static class SignUpRequest{
+        private String kakao_token;
+        private String phone;
+        public SignUpRequest(){}
     }
 }
