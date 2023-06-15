@@ -1,25 +1,17 @@
 package LCK.snowtaxi.service;
 
+import LCK.snowtaxi.blockchain.CoinContractService;
+import LCK.snowtaxi.domain.Participation;
+import LCK.snowtaxi.domain.Potlist;
 import LCK.snowtaxi.domain.User;
+import LCK.snowtaxi.repository.ParticipationRepository;
+import LCK.snowtaxi.repository.PotlistRepository;
 import LCK.snowtaxi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.web3j.abi.TypeReference;
-import org.web3j.abi.datatypes.Address;
-import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.crypto.Credentials;
-import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
-import org.web3j.protocol.core.methods.response.EthAccounts;
 import org.web3j.protocol.http.HttpService;
-
-import javax.imageio.IIOException;
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 
 @Service
 public class SnowCashService {
@@ -33,55 +25,62 @@ public class SnowCashService {
     static Web3j web3j = Web3j.build(new HttpService());
 
     @Autowired
-    final EthereumService ethereumService;
-
+    CoinContractService coinContractService;
     @Autowired
     UserRepository userRepository;
-    public SnowCashService(EthereumService ethereumService) {
-        this.ethereumService = ethereumService;
+    @Autowired
+    PotlistRepository potlistRepository;
+    @Autowired
+    ParticipationRepository participationRepository;
+
+
+    public Long getBalance(long userId) {
+        String address = userRepository.findByUserId(userId).get().getWalletAddress();
+
+        return coinContractService.balances(address);
     }
 
-    public Long getBalance(User user) {
-        Long balance = null;
-        Function getBalances = new Function(
-                "balances",
-                Arrays.asList(new Address(user.getWalletAddress())),
-                Arrays.asList(new TypeReference<Uint256>() {})
-        );
+    public void chargeCash(long userId, int amount) {
+        User user = userRepository.findByUserId(userId).get();
+        String address = user.getWalletAddress();
 
-        try {
-            balance = Long.valueOf(String.valueOf(ethereumService.ethCall(getBalances)));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        long beforeBalance = user.getBalance();
+        user.setBalance(beforeBalance + amount);
 
-        return balance;
+        coinContractService.charge(address, amount);
+        userRepository.save(user);
     }
 
-    public void chargeCash(User user, int amount) {
-        Function charge = new Function("charge",
-                Arrays.asList(new Address(user.getWalletAddress()), new Uint256(amount)),
-                Collections.emptyList()
-        );
+    public boolean sendCash(long senderId, long potId, int amount) {
+        User sender = userRepository.findByUserId(senderId).get();
+        long senderBalance = sender.getBalance();
 
-        try {
-            String transactionHash = ethereumService.ethSendTransaction(charge);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (senderBalance >= amount) {
+            String senderAddress = sender.getWalletAddress();
+
+
+            Potlist potlist = potlistRepository.findById(potId).get();
+            Long receiverId = potlist.getHostUserId();
+
+            User receiver = userRepository.findByUserId(receiverId).get();
+            String receiverAddress = receiver.getWalletAddress();
+            long receiverBalance = receiver.getBalance();
+
+            Participation participation = participationRepository.findByUserIdAndPotlistId(senderId, potId).get();
+
+            coinContractService.send(senderAddress, receiverAddress, amount);
+
+            participation.setPaid(true);
+            participationRepository.save(participation);
+
+            sender.setBalance(senderBalance - amount);
+            receiver.setBalance(receiverBalance + amount);
+            userRepository.save(sender);
+            userRepository.save(receiver);
+
+            return true;
+        } else {
+            return false;
         }
-    }
-
-    public void sendCash(User sender, User receiver, int amount) {
-        Function send = new Function("send",
-                Arrays.asList(new Address(sender.getWalletAddress()), new Address(receiver.getWalletAddress()), new Uint256(amount)),
-                Collections.emptyList()
-        );
-
-        try {
-            String transactionHash = ethereumService.ethSendTransaction(send);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
     }
 }
