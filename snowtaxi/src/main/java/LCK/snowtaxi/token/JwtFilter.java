@@ -58,6 +58,7 @@ public class JwtFilter  extends OncePerRequestFilter {
                                     user.getNickname(),
                                     user.getKakaoId()),
                             reIssuedRefreshToken);
+                    saveAuthentication(user);
                 });
     }
 
