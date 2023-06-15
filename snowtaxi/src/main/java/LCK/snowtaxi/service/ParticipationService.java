@@ -62,8 +62,9 @@ public class ParticipationService {
             User member = userRepository.findById(memberId).orElse(null);
             MyPotMemberDto myPotMemberDto = new MyPotMemberDto(member.getNickname(), member.getPhone(), participations.get(i).isPaid());
             if (memberId == mypot.getHostUserId()) {
-                myPotDto.setMe(myPotMemberDto);
-                myPotDto.setIsHost(true);
+                myPotDto.setHost(myPotMemberDto);
+                if (memberId == userId)
+                    myPotDto.setIsHost(true);
             } else {
                 if (memberId == userId) {
                     myPotDto.setMe(myPotMemberDto);
