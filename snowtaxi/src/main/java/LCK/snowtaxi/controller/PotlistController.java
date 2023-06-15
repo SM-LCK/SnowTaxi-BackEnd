@@ -3,7 +3,10 @@ package LCK.snowtaxi.controller;
 import LCK.snowtaxi.domain.Potlist;
 import LCK.snowtaxi.service.ParticipationService;
 import LCK.snowtaxi.service.PotlistService;
-import jakarta.servlet.http.HttpSession;
+import LCK.snowtaxi.token.JwtService;
+import LCK.snowtaxi.token.TokenInfoVo;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,27 +22,37 @@ public class PotlistController {
     PotlistService potlistService;
     @Autowired
     ParticipationService participationService;
+    @Autowired
+    JwtService jwtService;
 
     @GetMapping("/{departure}")
     public List<Potlist> getPotlist(@PathVariable String departure) {
         return potlistService.getTodayPotlist(departure, LocalDate.now());
     }
 
-    @PostMapping("/{departure}/")
-    public String makePot(@PathVariable String departure, @RequestParam String ridingTime, @NotNull HttpSession session) {
-        long userId = (long)session.getAttribute("userId");
-        potlistService.makePot(departure, ridingTime, userId);
+    @PostMapping("/{departure}/create")
+    public String makePot(@PathVariable String departure, @RequestParam String ridingTime, HttpServletRequest request) {
+        String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
+        TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
+
+        long userId = tokenInfoVo.getUserId();
+        long potlistId = potlistService.makePot(departure, ridingTime, userId);
+        participationService.makeParticipation(userId, potlistId);
         return "makePot";
     }
 
-    @PostMapping("/{departure}/2")
-    public void joinPot(@PathVariable String departure, @RequestParam long potlistId, @NotNull HttpSession session){
-        long userId = (long)session.getAttribute("userId");
+    @PostMapping("/{departure}/join")
+    public void joinPot(@PathVariable String departure, @RequestParam long potlistId, HttpServletRequest request){
+        String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
+        TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
+
+        long userId = tokenInfoVo.getUserId();
 
         potlistService.increaseHeadCount(potlistId);
         participationService.makeParticipation(userId, potlistId);
         return;
     }
+
 
 
 

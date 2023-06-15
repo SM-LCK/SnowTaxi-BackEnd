@@ -61,6 +61,7 @@ public class KakaoService {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        System.out.println("a");
         return token;
     }
 

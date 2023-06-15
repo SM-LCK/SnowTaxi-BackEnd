@@ -17,7 +17,7 @@ public class PotlistService {
         return potlistRepository.findByDepartureAndCreatedAt(departure, createdAt);
     }
 
-    public void makePot(String departure, String ridingTime, long hostUserId) {
+    public long makePot(String departure, String ridingTime, long hostUserId) {
         Potlist potlist = Potlist.builder()
                 .departure(departure)
                 .ridingTime(ridingTime)
@@ -28,10 +28,13 @@ public class PotlistService {
                 .build();
 
         potlistRepository.save(potlist);
+        return potlist.getPotlistId();
     }
 
     public void increaseHeadCount(long potlistId) {
-        potlistRepository.increaseHeadCount(potlistId);
+        Potlist potlist = potlistRepository.findById(potlistId).orElse(null);
+        potlist.setHeadCount(potlist.getHeadCount()+1);
+       potlistRepository .saveAndFlush(potlist);
     }
 
 }
