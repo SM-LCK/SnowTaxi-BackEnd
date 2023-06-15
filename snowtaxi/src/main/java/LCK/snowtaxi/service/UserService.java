@@ -1,5 +1,6 @@
 package LCK.snowtaxi.service;
 
+import LCK.snowtaxi.Dto.MyInfoDto;
 import LCK.snowtaxi.domain.User;
 import LCK.snowtaxi.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,13 @@ public class UserService {
         long userId = user.getUserId();
 
         return userId;
+    }
+
+    public MyInfoDto getUser(long userId) {
+        User user = userRepository.findById(userId).get();
+        MyInfoDto myInfoDto = new MyInfoDto(user.getNickname(), user.getPhone(), user.getBalance());
+
+        return myInfoDto;
     }
 
     public Optional<User> viewUser(long userId) {

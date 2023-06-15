@@ -1,5 +1,6 @@
 package LCK.snowtaxi.controller;
 
+import LCK.snowtaxi.Dto.MyInfoDto;
 import LCK.snowtaxi.blockchain.EthereumService;
 import LCK.snowtaxi.service.KakaoService;
 import LCK.snowtaxi.service.UserService;
@@ -120,6 +121,16 @@ public class UserController {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         return "/login";
+    }
+
+    @GetMapping("/me")
+    public MyInfoDto getMe(HttpServletRequest request) {
+        String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
+        TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
+
+        long userId = tokenInfoVo.getUserId();
+
+        return userService.getUser(userId);
     }
 
 

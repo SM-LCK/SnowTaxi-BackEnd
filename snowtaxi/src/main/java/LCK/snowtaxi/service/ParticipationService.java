@@ -51,7 +51,7 @@ public class ParticipationService {
         Potlist mypot = potlistRepository.findByPotlistId(potId).orElse(null);
         int n = mypot.getHeadCount();
 
-        List<Participation> participations = participationRepository.findByPotlistId(mypot.getPotlistId());
+        List<Participation> participations = participationRepository.findByPotlistId(potId);
 
         MyPotDto myPotDto = new MyPotDto();
         myPotDto.setPotlist(mypot);
@@ -62,15 +62,14 @@ public class ParticipationService {
             User member = userRepository.findById(memberId).orElse(null);
             MyPotMemberDto myPotMemberDto = new MyPotMemberDto(member.getNickname(), member.getPhone(), participations.get(i).isPaid());
             if (memberId == mypot.getHostUserId()) {
+                myPotDto.setMe(myPotMemberDto);
+                myPotDto.setIsHost(true);
+            } else {
                 if (memberId == userId) {
                     myPotDto.setMe(myPotMemberDto);
-                    myPotDto.setIsHost(true);
                 } else {
-                    myPotDto.setHost(myPotMemberDto);
-                    myPotDto.setIsHost(false);
+                    myPotMemberDtos.add(myPotMemberDto);
                 }
-            } else {
-                myPotMemberDtos.add(myPotMemberDto);
             }
         }
         myPotDto.setMembers(myPotMemberDtos);
