@@ -25,4 +25,5 @@ public class User {
 
     private String refreshToken; // 리프레시 토큰
 
+    private long participatingPotId; // 참여중인 팟 아이디 - 없으면 0
 }

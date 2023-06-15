@@ -37,20 +37,26 @@ public class PotlistController {
 
         long userId = tokenInfoVo.getUserId();
         long potlistId = potlistService.makePot(departure, ridingTime, userId);
-        participationService.makeParticipation(userId, potlistId);
-        return "makePot";
+        if (potlistId != 0) {
+            participationService.makeParticipation(userId, potlistId);
+            return "success";
+        } else {
+            return "fail";
+        }
     }
 
     @PostMapping("/{departure}/join")
-    public void joinPot(@PathVariable String departure, @RequestParam long potlistId, HttpServletRequest request){
+    public String joinPot(@PathVariable String departure, @RequestParam long potlistId, HttpServletRequest request){
         String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
         TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
 
         long userId = tokenInfoVo.getUserId();
 
-        potlistService.increaseHeadCount(potlistId);
-        participationService.makeParticipation(userId, potlistId);
-        return;
+        if (participationService.makeParticipation(userId, potlistId)) {
+            potlistService.increaseHeadCount(potlistId);
+            return "success";
+        }
+        return "fail";
     }
 
 
