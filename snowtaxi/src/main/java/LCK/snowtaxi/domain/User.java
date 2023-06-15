@@ -17,6 +17,7 @@ public class User {
 
     private String phone;
     private String walletAddress;
+    private long balance;
 
     private String kakaoId;
     private String nickname; // --> 닉네임

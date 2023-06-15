@@ -34,14 +34,13 @@ public class EthereumService {
 
     private static final Web3j web3j = Web3j.build(new HttpService());
 
-    public String createAccount(User user) throws Exception {
+    public String createAccount(String pwd) throws Exception {
         // 새 계정 생성
-        String password = user.getPhone();
-        String walletFileName = WalletUtils.generateNewWalletFile(password, new File(walletPath));
+        String walletFileName = WalletUtils.generateNewWalletFile(pwd, new File(walletPath));
 
         // 생성된 계정 정보 출력
         String walletFilePath = walletPath + File.separator + walletFileName;
-        Credentials credentials = WalletUtils.loadCredentials(password, walletFilePath);
+        Credentials credentials = WalletUtils.loadCredentials(pwd, walletFilePath);
         String address = credentials.getAddress();
 
         System.out.println("New account address: " + address);
@@ -68,9 +67,9 @@ public class EthereumService {
         //3. 결과값 decode
         List<Type> decode = FunctionReturnDecoder.decode(ethCall.getResult(), function.getOutputParameters());
 
-//        System.out.println("ethCall.getResult() = " + ethCall.getResult());
-//        System.out.println("getValue = " + decode.get(0).getValue());
-//        System.out.println("getType = " + decode.get(0).getTypeAsString());
+        System.out.println("ethCall.getResult() = " + ethCall.getResult());
+        System.out.println("getValue = " + decode.get(0).getValue());
+        System.out.println("getType = " + decode.get(0).getTypeAsString());
 
         return decode.get(0).getValue();
     }
@@ -97,7 +96,7 @@ public class EthereumService {
         String transactionHash = ethSendTransaction.getTransactionHash();
 
         // ledger에 쓰여지기 까지 기다리기.
-        Thread.sleep(5000);
+        Thread.sleep(6000);
 
         return transactionHash;
     }
