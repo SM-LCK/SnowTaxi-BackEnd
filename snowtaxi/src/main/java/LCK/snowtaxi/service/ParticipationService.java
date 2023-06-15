@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -61,8 +62,7 @@ public class ParticipationService {
 
     public void del(long userId){
         List<Long> potId = participationRepository.findPotId(userId);
-        if(potId.get(0) ==null) return; // 현재 참여중인 팟 없음
-
+        if(potId == Collections.<Long>emptyList()) {return;} // 현재 참여중인 팟 없음
         List<Long> participationId = participationRepository.findByParticipationId(potId.get(0));
         Potlist mypot = potlistRepository.findByPotlistId(potId.get(0)).orElse(null);
 
@@ -70,8 +70,9 @@ public class ParticipationService {
         if(mypot.getHostUserId() == userId) {
             // 본인밖에 없으면 방폭
             if(mypot.getHeadCount() == 1) {
-                potlistRepository.deleteById(potId.get(0));
                 participationRepository.deleteById(participationId.get(0));
+                potlistRepository.deleteById(potId.get(0));
+                return;
             }
             participationRepository.deleteById(participationId.get(0));
 
@@ -79,6 +80,7 @@ public class ParticipationService {
             mypot.setHostUserId(participations.get(0).getUserId());
 
             mypot.setHeadCount(mypot.getHeadCount()-1);
+            potlistRepository.saveAndFlush(mypot);
             return;
         }
         participationRepository.deleteById(participationId.get(0));

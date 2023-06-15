@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface ParticipationRepository extends JpaRepository<Participation, Long> {
 
-    @Query(value = "select p.potlist_id from Participation p where p.user_id = :user_id and is_paid = false", nativeQuery = true)
+    @Query(value = "select p.potlist_id from Participation p where p.user_id = :user_id and p.is_paid = false", nativeQuery = true)
     List<Long> findPotId(@Param("user_id") long userId);
 
     List<Participation> findByPotlistId(long potlistId);
