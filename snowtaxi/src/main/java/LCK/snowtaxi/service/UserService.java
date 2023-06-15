@@ -2,7 +2,6 @@ package LCK.snowtaxi.service;
 
 import LCK.snowtaxi.domain.User;
 import LCK.snowtaxi.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +14,12 @@ public class UserService {
         return userRepository.existsByKakaoId(kakaoId);
     }
 
-    public void createUser(String kakaoId, String nickname, String phone) {
+    public void createUser(String kakaoId, String nickname, String phone, String walletAddress) {
         User user = User.builder()
                 .kakaoId(kakaoId)
                 .nickname(nickname)
                 .phone(phone)
+                .walletAddress(walletAddress)
                 .build();
 
         userRepository.save(user);

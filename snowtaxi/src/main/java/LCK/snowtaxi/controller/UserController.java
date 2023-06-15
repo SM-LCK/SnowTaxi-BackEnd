@@ -1,5 +1,6 @@
 package LCK.snowtaxi.controller;
 
+import LCK.snowtaxi.blockchain.EthereumService;
 import LCK.snowtaxi.service.KakaoService;
 import LCK.snowtaxi.service.UserService;
 import LCK.snowtaxi.token.JwtService;
@@ -10,11 +11,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.HashMap;
 
 @RequestMapping(path = "/user")
@@ -26,6 +25,8 @@ public class UserController {
     UserService userService;
     @Autowired
     JwtService jwtService;
+    @Autowired
+    EthereumService ethereumService;
 
     @GetMapping("/login")
     public String login()
@@ -43,36 +44,48 @@ public class UserController {
     }
 
     @PostMapping("/auth")
-    public void validation (@RequestBody AuthRequest authRequest, HttpServletResponse response) throws IOException {
+    public String validation (@RequestBody AuthRequest authRequest, HttpServletResponse response) throws IOException {
         String kakao_token = authRequest.getKakao_token();
         HashMap<String, Object> userInfo = ks.getUserInfo(kakao_token);
 
         String kakaoId = (String) userInfo.get("id");
-        String nickname = (String) userInfo.get("nickname");
 
         if (!userService.isUser(kakaoId)) {
-            userService.createUser(kakaoId, nickname, null);
-            System.out.println("전화번호를 받으세요");
+            return "SignUp";
+        } else {
+            return "Main";
         }
+    }
+
+    //        long userId = userService.getUserId(kakaoId);
+//        String access_token = jwtService.createAccessToken(kakaoId,userId,nickname,kakao_token);
+//        String refresh_token = jwtService.createRefreshToken();
+//
+//        jwtService.updateRefreshToken(userId, refresh_token);
+//
+//        jwtService.sendAccessAndRefreshToken(response, access_token, refresh_token);
+//        System.out.println("토큰을 헤더로 전송");
+//        return;
+
+    @PostMapping("/signUp")
+    public void signUp(@RequestBody SignUpRequest signUpRequest, HttpServletResponse response) throws Exception {
+        String kakao_token = signUpRequest.getKakao_token();
+        String phone = signUpRequest.getPhone();
+        HashMap<String, Object> userInfo = ks.getUserInfo(kakao_token);
+
+        String kakaoId = (String) userInfo.get("id");
+        String nickname = (String) userInfo.get("nickname");
+        String walletAddress = ethereumService.createAccount(kakaoId);
+
+        userService.createUser(kakaoId, nickname, phone, walletAddress);
 
         long userId = userService.getUserId(kakaoId);
         String access_token = jwtService.createAccessToken(kakaoId,userId,nickname,kakao_token);
         String refresh_token = jwtService.createRefreshToken();
 
         jwtService.updateRefreshToken(userId, refresh_token);
-
         jwtService.sendAccessAndRefreshToken(response, access_token, refresh_token);
-        System.out.println("토큰을 헤더로 전송");
-        return;
     }
-
-
-//    @ResponseBody
-//    @PostMapping("/signUp")
-//    public String signUp(@RequestParam String phone) {
-//
-//        return "home";
-//    }
 
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
@@ -110,6 +123,16 @@ public class UserController {
     static class AuthRequest{
         private String kakao_token;
         public AuthRequest(){
+
+        }
+    }
+
+    @AllArgsConstructor
+    @Data
+    static class SignUpRequest{
+        private String kakao_token;
+        private String phone;
+        public SignUpRequest(){
 
         }
     }
