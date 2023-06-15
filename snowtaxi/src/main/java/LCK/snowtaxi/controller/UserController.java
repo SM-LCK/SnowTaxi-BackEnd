@@ -43,8 +43,8 @@ public class UserController {
         return access_token;
     }
 
-    @PostMapping("/auth")
-    public String validation (@RequestBody AuthRequest authRequest, HttpServletResponse response) throws IOException {
+    @PostMapping("/isUser")
+    public String validation (@RequestBody AuthRequest authRequest) throws IOException {
         String kakao_token = authRequest.getKakao_token();
         HashMap<String, Object> userInfo = ks.getUserInfo(kakao_token);
 
@@ -57,18 +57,8 @@ public class UserController {
         }
     }
 
-    //        long userId = userService.getUserId(kakaoId);
-//        String access_token = jwtService.createAccessToken(kakaoId,userId,nickname,kakao_token);
-//        String refresh_token = jwtService.createRefreshToken();
-//
-//        jwtService.updateRefreshToken(userId, refresh_token);
-//
-//        jwtService.sendAccessAndRefreshToken(response, access_token, refresh_token);
-//        System.out.println("토큰을 헤더로 전송");
-//        return;
-
     @PostMapping("/signUp")
-    public void signUp(@RequestBody SignUpRequest signUpRequest, HttpServletResponse response) throws Exception {
+    public void signUp(@RequestBody SignUpRequest signUpRequest) throws Exception {
         String kakao_token = signUpRequest.getKakao_token();
         String phone = signUpRequest.getPhone();
         HashMap<String, Object> userInfo = ks.getUserInfo(kakao_token);
@@ -78,14 +68,31 @@ public class UserController {
         String walletAddress = ethereumService.createAccount(kakaoId);
 
         userService.createUser(kakaoId, nickname, phone, walletAddress);
+    }
+
+    @PostMapping("/auth")
+    public void validation (@RequestBody AuthRequest authRequest, HttpServletResponse response) throws IOException {
+        String kakao_token = authRequest.getKakao_token();
+        HashMap<String, Object> userInfo = ks.getUserInfo(kakao_token);
+
+        String kakaoId = (String) userInfo.get("id");
+        String nickname = (String) userInfo.get("nickname");
+
+        if (!userService.isUser(kakaoId)) {
+            userService.createUser(kakaoId, nickname, "err", "err");
+        }
 
         long userId = userService.getUserId(kakaoId);
         String access_token = jwtService.createAccessToken(kakaoId,userId,nickname,kakao_token);
         String refresh_token = jwtService.createRefreshToken();
 
         jwtService.updateRefreshToken(userId, refresh_token);
+
         jwtService.sendAccessAndRefreshToken(response, access_token, refresh_token);
+        System.out.println("토큰을 헤더로 전송");
+
     }
+
 
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
@@ -122,9 +129,7 @@ public class UserController {
     @Data
     static class AuthRequest{
         private String kakao_token;
-        public AuthRequest(){
-
-        }
+        public AuthRequest(){}
     }
 
     @AllArgsConstructor
