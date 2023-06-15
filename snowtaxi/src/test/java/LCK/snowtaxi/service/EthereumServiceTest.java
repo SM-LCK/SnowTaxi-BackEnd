@@ -1,6 +1,6 @@
 package LCK.snowtaxi.service;
 
-import LCK.snowtaxi.domain.User;
+import LCK.snowtaxi.blockchain.EthereumService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,14 +21,8 @@ class EthereumServiceTest {
 
     @Test
     public void createAccount() {
-        User user = User.builder()
-                .userId(10)
-                .kakaoId("123")
-                .phone("123345677")
-                .build();
-
         try {
-            System.out.println(ethereumService.createAccount(user));
+            System.out.println(ethereumService.createAccount("pwd"));
         } catch (Exception e) {
             e.printStackTrace();
         }
