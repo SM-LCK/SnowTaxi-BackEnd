@@ -1,4 +1,4 @@
-package LCK.snowtaxi.service;
+package LCK.snowtaxi.blockchain;
 
 import java.io.File;
 import java.io.IOException;
