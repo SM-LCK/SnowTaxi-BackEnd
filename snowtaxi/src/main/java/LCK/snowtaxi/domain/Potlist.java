@@ -25,4 +25,6 @@ public class Potlist {
     private LocalDate createdAt;
 
     private boolean isPaidRequest;
+
+    // isOver 종료 여부 저장.. 참여자가 sendcash 할 떄 마다 전체 참여자의 Participation isPaid 속성을 검사해 업데이트...............
 }
