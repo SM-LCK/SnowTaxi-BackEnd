@@ -12,6 +12,9 @@ import java.util.List;
 @Setter
 public class MyPotDto implements Serializable {
     private Potlist potlist;
+    private MyPotMemberDto host;
+    private MyPotMemberDto me;
+    private Boolean isHost;
     private List<MyPotMemberDto> members;
 
 }
