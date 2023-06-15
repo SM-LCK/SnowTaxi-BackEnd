@@ -38,9 +38,8 @@ public class UserController {
     @GetMapping("/kakao")
     public String getCI(@RequestParam String code) throws IOException {
         System.out.println("code = " + code);
-        String access_token = ks.getAccessToken(code);
 
-        return access_token;
+        return "";
     }
 
     @PostMapping("/isUser")
