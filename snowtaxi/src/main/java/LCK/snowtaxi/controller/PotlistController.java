@@ -1,5 +1,6 @@
 package LCK.snowtaxi.controller;
 
+import LCK.snowtaxi.Dto.GetPotListDto;
 import LCK.snowtaxi.domain.Potlist;
 import LCK.snowtaxi.service.ParticipationService;
 import LCK.snowtaxi.service.PotlistService;
@@ -26,8 +27,11 @@ public class PotlistController {
     JwtService jwtService;
 
     @GetMapping("/{departure}")
-    public List<Potlist> getPotlist(@PathVariable String departure) {
-        return potlistService.getTodayPotlist(departure, LocalDate.now());
+    public GetPotListDto getPotlist(@PathVariable String departure, HttpServletRequest request) {
+        String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
+        TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
+
+        return potlistService.getTodayPotlist(departure, LocalDate.now(), tokenInfoVo.getUserId());
     }
 
     @PostMapping("/{departure}/create")

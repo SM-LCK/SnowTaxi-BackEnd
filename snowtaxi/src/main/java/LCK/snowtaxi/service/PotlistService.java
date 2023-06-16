@@ -1,5 +1,7 @@
 package LCK.snowtaxi.service;
 
+import LCK.snowtaxi.Dto.GetPotListDto;
+import LCK.snowtaxi.Dto.PotListDto;
 import LCK.snowtaxi.domain.Participation;
 import LCK.snowtaxi.domain.Potlist;
 import LCK.snowtaxi.domain.User;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -18,8 +21,27 @@ public class PotlistService {
     @Autowired
     UserRepository userRepository;
 
-    public List<Potlist> getTodayPotlist(String departure, LocalDate createdAt) {
-        return potlistRepository.findByDepartureAndCreatedAt(departure, createdAt);
+    public GetPotListDto getTodayPotlist(String departure, LocalDate createdAt, long userId) {
+        List<Potlist> pots = potlistRepository.findByDepartureAndCreatedAt(departure, createdAt);
+        long userParticipatingPotId = userRepository.findById(userId).orElse(null).getParticipatingPotId();
+
+        List<PotListDto> potListDtos = new ArrayList<PotListDto>();
+        boolean isParticipating = false;
+
+        for (int i = 0; i< pots.size(); i++) {
+            long potId = pots.get(i).getPotlistId();
+            Potlist potlist = potlistRepository.findById(potId).get();
+            boolean isMyPot = false;
+
+            if (potId == userParticipatingPotId){
+                isParticipating = true;
+                isMyPot = true;
+            }
+
+            PotListDto potListDto = new PotListDto(potlist, isMyPot);
+            potListDtos.add(potListDto);
+        }
+        return new GetPotListDto(potListDtos, isParticipating);
     }
 
     public long makePot(String departure, String ridingTime, long hostUserId) {
