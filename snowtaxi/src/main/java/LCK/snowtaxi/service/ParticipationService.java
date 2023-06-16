@@ -67,12 +67,12 @@ public class ParticipationService {
                 if (memberId == userId)
                     myPotDto.setIsHost(true);
             } else {
-                if (memberId == userId) {
-                    myPotDto.setMe(myPotMemberDto);
-                } else {
+                if (memberId != userId) {
                     myPotMemberDtos.add(myPotMemberDto);
                 }
             }
+            if (memberId == userId)
+                myPotDto.setMe(myPotMemberDto);
         }
         myPotDto.setMembers(myPotMemberDtos);
 
@@ -96,6 +96,7 @@ public class ParticipationService {
             if(mypot.getHeadCount() == 1) { // 본인밖에 없으면 방폭
                 participationRepository.deleteById(participationId);
                 potlistRepository.deleteById(potId);
+                return;
             } else { // 다음 사람으로 방장 위임
                 participationRepository.deleteById(participationId);
 

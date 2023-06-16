@@ -24,9 +24,12 @@ public class PotlistService {
     public GetPotListDto getTodayPotlist(String departure, LocalDate createdAt, long userId) {
         List<Potlist> pots = potlistRepository.findByDepartureAndCreatedAt(departure, createdAt);
         long userParticipatingPotId = userRepository.findById(userId).orElse(null).getParticipatingPotId();
+        User user = userRepository.findById(userId).get();
+        boolean isParticipating = false;
+        if (user.getParticipatingPotId() != 0)
+            isParticipating = true;
 
         List<PotListDto> potListDtos = new ArrayList<PotListDto>();
-        boolean isParticipating = false;
 
         for (int i = 0; i< pots.size(); i++) {
             long potId = pots.get(i).getPotlistId();
@@ -34,7 +37,6 @@ public class PotlistService {
             boolean isMyPot = false;
 
             if (potId == userParticipatingPotId){
-                isParticipating = true;
                 isMyPot = true;
             }
 

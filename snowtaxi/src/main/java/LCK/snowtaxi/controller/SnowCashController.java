@@ -31,15 +31,20 @@ public class SnowCashController {
     }
 
     @PostMapping("/pay")
-    public void pay(HttpServletRequest request) {
+    public String pay(HttpServletRequest request) {
         System.out.println("whyy");
+
         String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
         TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
 
         long userId = tokenInfoVo.getUserId();
         User user = userRepository.findById(userId).get();
 
-        snowCashService.sendCash(userId, user.getParticipatingPotId(), 1200);
+        if (snowCashService.sendCash(userId, user.getParticipatingPotId(), 1200)) {
+            return "success";
+        } else {
+            return"fail";
+        }
     }
 
 }
