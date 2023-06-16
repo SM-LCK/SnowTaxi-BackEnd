@@ -58,7 +58,7 @@ public class UserController {
         String kakaoId = "a";
         String nickname = "이송이";
         String phone = "010-1234-1234";
-        String walletAddress ="";
+        String walletAddress ="0x7d49f06791462903bd07cb80fb8b67dc13fc75a8";
 
         userService.createUser(kakaoId, nickname, phone, walletAddress);
         long userId = userService.getUserId(kakaoId);
@@ -82,7 +82,7 @@ public class UserController {
         kakaoId = "c";
         nickname = "박두두";
         phone = "010-1234-1234";
-        walletAddress ="";
+        walletAddress ="0x97236c32f67d5389eb16afe2ba7e0fdb8bfe082c";
 
         userService.createUser(kakaoId, nickname, phone, walletAddress);
         userId = userService.getUserId(kakaoId);

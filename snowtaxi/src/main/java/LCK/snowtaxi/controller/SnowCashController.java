@@ -1,6 +1,9 @@
 package LCK.snowtaxi.controller;
 
+import LCK.snowtaxi.domain.User;
+import LCK.snowtaxi.repository.UserRepository;
 import LCK.snowtaxi.service.SnowCashService;
+import LCK.snowtaxi.service.UserService;
 import LCK.snowtaxi.token.JwtService;
 import LCK.snowtaxi.token.TokenInfoVo;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,10 +16,13 @@ public class SnowCashController {
     @Autowired
     SnowCashService snowCashService;
     @Autowired
+    UserRepository userRepository;
+    @Autowired
     JwtService jwtService;
 
     @PostMapping("/charge")
     public void charge(HttpServletRequest request, @RequestParam("amount") int amount){
+        System.out.println("in");
         String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
         TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
         long userId = tokenInfoVo.getUserId();
@@ -25,13 +31,15 @@ public class SnowCashController {
     }
 
     @PostMapping("/pay")
-    public void pay(HttpServletRequest request, @RequestParam("potId") int potId){
+    public void pay(HttpServletRequest request) {
+        System.out.println("whyy");
         String access_token = jwtService.extractAccessToken(request).orElseGet(() -> "");
         TokenInfoVo tokenInfoVo = jwtService.getTokenInfo(access_token);
 
         long userId = tokenInfoVo.getUserId();
+        User user = userRepository.findById(userId).get();
 
-        snowCashService.sendCash(userId, potId, 1200);
+        snowCashService.sendCash(userId, user.getParticipatingPotId(), 1200);
     }
 
 }

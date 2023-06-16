@@ -56,6 +56,7 @@ public class ParticipationService {
         MyPotDto myPotDto = new MyPotDto();
         myPotDto.setPotlist(mypot);
         List<MyPotMemberDto> myPotMemberDtos = new ArrayList<MyPotMemberDto>();
+        myPotDto.setIsHost(false);
 
         for(int i = 0; i < n; i++) {
             long memberId = participations.get(i).getUserId();
@@ -101,12 +102,13 @@ public class ParticipationService {
                 List<Participation> participations = participationRepository.findByPotlistId(mypot.getPotlistId());
                 mypot.setHostUserId(participations.get(0).getUserId());
 
-                mypot.setHeadCount(mypot.getHeadCount()-1);
-                potlistRepository.saveAndFlush(mypot);
             }
         } else {
             participationRepository.deleteById(participationId);
         }
+        mypot.setHeadCount(mypot.getHeadCount()-1);
+        potlistRepository.saveAndFlush(mypot);
+
         user.setParticipatingPotId(0);
         userRepository.saveAndFlush(user);
     }

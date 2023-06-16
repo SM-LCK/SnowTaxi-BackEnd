@@ -96,7 +96,7 @@ public class EthereumService {
         String transactionHash = ethSendTransaction.getTransactionHash();
 
         // ledger에 쓰여지기 까지 기다리기.
-        Thread.sleep(6000);
+        Thread.sleep(2000);
 
         return transactionHash;
     }
