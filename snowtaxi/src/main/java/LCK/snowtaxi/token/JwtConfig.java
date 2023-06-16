@@ -36,6 +36,6 @@ public class JwtConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web) -> web.ignoring().requestMatchers("user/auth", "user/kakao**", "user/isUser", "user/signUp");
+        return (web) -> web.ignoring().requestMatchers("user/auth", "user/kakao**", "user/isUser", "user/signUp","user/mkdum");
     }
 }

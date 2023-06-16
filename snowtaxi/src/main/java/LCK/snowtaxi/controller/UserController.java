@@ -2,7 +2,11 @@ package LCK.snowtaxi.controller;
 
 import LCK.snowtaxi.Dto.MyInfoDto;
 import LCK.snowtaxi.blockchain.EthereumService;
+import LCK.snowtaxi.domain.Participation;
+import LCK.snowtaxi.repository.ParticipationRepository;
 import LCK.snowtaxi.service.KakaoService;
+import LCK.snowtaxi.service.ParticipationService;
+import LCK.snowtaxi.service.PotlistService;
 import LCK.snowtaxi.service.UserService;
 import LCK.snowtaxi.token.JwtService;
 import LCK.snowtaxi.token.TokenInfoVo;
@@ -28,6 +32,12 @@ public class UserController {
     JwtService jwtService;
     @Autowired
     EthereumService ethereumService;
+    @Autowired
+    PotlistService potlistService;
+    @Autowired
+    ParticipationService participationService;
+    @Autowired
+    ParticipationRepository participationRepository;
 
     @GetMapping("/login")
     public String login()
@@ -41,6 +51,78 @@ public class UserController {
         System.out.println("code = " + code);
 
         return "";
+    }
+    @GetMapping("/mkdum")
+    public String makeDummy(HttpServletResponse response){
+        String kakao_token =  "noToken1";
+        String kakaoId = "a";
+        String nickname = "이송이";
+        String phone = "010-1234-1234";
+        String walletAddress ="";
+
+        userService.createUser(kakaoId, nickname, phone, walletAddress);
+        long userId = userService.getUserId(kakaoId);
+
+        long potlistId = potlistService.makePot("숙대입구", "오후 1:00", userId);
+        if (potlistId != 0)
+            participationService.makeParticipation(userId, potlistId);
+
+        kakao_token =  "noToken2";
+        kakaoId = "b";
+        nickname = "눈송송";
+        phone = "010-1234-1234";
+        walletAddress ="";
+
+        userService.createUser(kakaoId, nickname, phone, walletAddress);
+        userId = userService.getUserId(kakaoId);
+        participationService.makeParticipation(userId, potlistId);
+        potlistService.increaseHeadCount(potlistId);
+
+        kakao_token =  "noToken3";
+        kakaoId = "c";
+        nickname = "박두두";
+        phone = "010-1234-1234";
+        walletAddress ="";
+
+        userService.createUser(kakaoId, nickname, phone, walletAddress);
+        userId = userService.getUserId(kakaoId);
+
+        potlistId = potlistService.makePot("효창공원앞", "오후 2:30", userId);
+        if (potlistId != 0)
+            participationService.makeParticipation(userId, potlistId);
+
+        kakao_token =  "noToken4";
+        kakaoId = "d";
+        nickname = "박미미";
+        phone = "010-1234-1234";
+        walletAddress ="";
+
+        userService.createUser(kakaoId, nickname, phone, walletAddress);
+        userId = userService.getUserId(kakaoId);
+        participationService.makeParticipation(userId, potlistId);
+        potlistService.increaseHeadCount(potlistId);
+
+        kakao_token =  "noToken5";
+        kakaoId = "e";
+        nickname = "박하하";
+        phone = "010-1234-1234";
+        walletAddress ="";
+
+        userService.createUser(kakaoId, nickname, phone, walletAddress);
+        userId = userService.getUserId(kakaoId);
+        participationService.makeParticipation(userId, potlistId);
+        potlistService.increaseHeadCount(potlistId);
+        Participation participation = participationRepository.findByUserIdAndPotlistId(userId, potlistId).get();
+        participation.setPaid(true);
+        participationRepository.save(participation);
+
+//        String access_token = jwtService.createAccessToken(kakaoId,userId,nickname,kakao_token);
+//        String refresh_token = jwtService.createRefreshToken();
+//
+//        jwtService.updateRefreshToken(userId, refresh_token);
+//
+//        jwtService.sendAccessAndRefreshToken(response, access_token, refresh_token);
+        return "makeDummy";
     }
 
     @PostMapping("/isUser")
