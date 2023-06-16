@@ -107,5 +107,7 @@ public class ParticipationService {
         } else {
             participationRepository.deleteById(participationId);
         }
+        user.setParticipatingPotId(0);
+        userRepository.saveAndFlush(user);
     }
 }
